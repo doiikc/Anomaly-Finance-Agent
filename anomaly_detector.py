@@ -17,16 +17,3 @@ def detect_anomalies(data):
 
     data['Is_Anomaly']= data['Z_score'].abs() >3
     return data
-
-if __name__ == "__main__":
-    # 1. Veriyi çekiyoruz
-    ham_veri = data_fetcher("TSLA")
-    
-    # 2. Anomalileri tespit ediyoruz
-    analiz_edilmis_veri = detect_anomalies(ham_veri)
-    
-    # 3. Sadece anomali olan (True) satırları filtreleyip ekrana yazdıralım
-    anomaliler = analiz_edilmis_veri[analiz_edilmis_veri['Is_Anomaly'] == True]
-    
-    print("--- TESPİT EDİLEN ANOMALİLER ---")
-    print(anomaliler)
