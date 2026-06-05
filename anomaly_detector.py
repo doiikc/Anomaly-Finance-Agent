@@ -1,6 +1,12 @@
 import yfinance as yf
 import pandas as pd
 import numpy as np
+import os
+from dotenv import load_dotenv
+from tavily import TavilyClient
+
+load_dotenv()
+tavily= TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 
 def data_fetcher(stockName, period="1y", interval="1d"):
     data= yf.download(tickers= stockName, period=period, interval=interval)
@@ -27,3 +33,18 @@ def detect_anomalies(data):
     data.loc[z_error, 'Status_Reason'] = "Statistical Anomaly: Significant price movement"
     return data
 
+def search_news(stock_name,date):
+    query= f"{stock_name} stock market news catalyst event around {date}"
+    print(f"Agent is searching internet for:{query}")
+
+    try:
+        response = tavily.search(query=query, max_results=3)
+        context= ""
+
+        for result in response.get('results', []):
+            context += f"Title: {result['title']}\nSnippet: {result['content']}\nURL: {result['url']}\n---\n"
+
+        return context if context else "No relevant news found for this date."
+        
+    except Exception as e:
+        return f"Search failed due to error: {str(e)}"
