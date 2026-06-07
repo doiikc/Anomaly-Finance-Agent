@@ -4,9 +4,11 @@ import numpy as np
 import os
 from dotenv import load_dotenv
 from tavily import TavilyClient
+from groq import Groq
 
 load_dotenv()
 tavily= TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
+groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def data_fetcher(stockName, period="1y", interval="1d"):
     data= yf.download(tickers= stockName, period=period, interval=interval)
@@ -48,3 +50,65 @@ def search_news(stock_name,date):
         
     except Exception as e:
         return f"Search failed due to error: {str(e)}"
+    
+def generate_analysis(stock_name, date, price, z_score, news_context):
+    print("Agent is analyzing the news and creating a report...")
+
+
+    system_prompt = """You are an experienced financial market analyst.
+
+You will receive a list of events that occurred on a specific day, along with market movements
+
+Your task is to:
+1. Analyze each event and determine its likely impact on the observed market movements.
+2. Identify the most influential events and explain the transmission mechanism from the event to the market reaction.
+3. Distinguish between correlation and likely causation. Do not claim causality unless it is strongly supported by the information provided.
+4. If multiple events could explain the same movement, discuss all plausible explanations and rank them by likelihood.
+5. Highlight any inconsistencies where an event does not appear to explain the market reaction.
+6. Consider macroeconomic, geopolitical, monetary policy, earnings, and sentiment-related factors when relevant.
+7. Provide concise but insightful reasoning using professional financial terminology.
+
+Output format:
+
+## Market Summary
+Brief overview of the day's market performance.
+
+## Key Market Movements
+- Movement:
+- Likely Drivers:
+- Explanation:
+
+## Event Impact Analysis
+For each event:
+- Event:
+- Affected Assets:
+- Expected Impact:
+- Observed Impact:
+- Confidence Level (High/Medium/Low):
+- Reasoning:
+
+## Most Likely Market Drivers
+Rank the top events that most likely drove the market.
+
+## Conclusion
+Summarize the primary reasons behind the market movements.
+
+Language: English."""
+
+    user_content = f"Stock: {stock_name}, Date: {date}, Price: {price}, News: {news_context}"
+
+    try:
+        completion=groq_client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content}
+            ],
+            temperature=0.2
+        )
+        return completion.choices[0].message.content
+    except Exception as e:
+        return f"Error: {str(e)}"
+    
+
+
