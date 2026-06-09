@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 from tavily import TavilyClient
 from groq import Groq
+import matplotlib.pyplot as plt
 
 load_dotenv()
 tavily= TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
@@ -110,5 +111,15 @@ Language: English."""
     except Exception as e:
         return f"Error: {str(e)}"
     
+def plot_anomalies(data, stock_name):
+    plt.figure(figsize=(12,6))
+    plt.plot(data.index, data['Close'], label= 'Stock Price', color= 'blue', alpha=0.6)
 
-
+    anomalies = data[data['Is_Anomaly'] == True]
+    plt.scatter(anomalies.index, anomalies['Close'], color='red', label='Anomaly', s=100, zorder=5)
+    plt.title(f"{stock_name} - Automated Anomaly Detection Dashboard", fontsize=14, fontweight='bold', pad=15)
+    plt.xlabel("Date", fontsize=12)
+    plt.ylabel("Price ($)", fontsize=12)
+    plt.grid(True, linestyle='--', alpha=0.5) 
+    plt.legend(loc='upper left', fontsize=11)
+    plt.show()
