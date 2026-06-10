@@ -123,3 +123,23 @@ def plot_anomalies(data, stock_name):
     plt.grid(True, linestyle='--', alpha=0.5) 
     plt.legend(loc='upper left', fontsize=11)
     plt.show()
+
+def get_and_verify_date(data):
+    user_date= input("Enter the anomaly date to analyze (YYYY-MM-DD): ")
+
+    try:
+        target_date= pd.to_datetime(user_date)
+        if target_date in data.index:
+            selected_row= data.loc[target_date]
+            if selected_row['Is_Anomaly']:
+                print("Anomaly verified on this date.")
+            else:
+                print("This date exists but isnt flagged as anomaly. But the internet will still be searched.")
+
+        else:
+            print("This date doesnt exist on the dataset (could be a weekend or holiday)")
+            return None,None
+        
+    except Exception as e:
+        print("Invalid date format. Please use YYYY-MM-DD")
+        return None,None
